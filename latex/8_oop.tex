@@ -1,0 +1,283 @@
+\section{Object oriented programming}
+The C programming language does not have native support for object oriented programming, but it is possible and indicate to write code object oriented. It makes code more readable and easier to maintain. \\
+Some useful tricks and tips can be found here: \href{https://github.com/Kukos/OOP-in-C}{OOP in C}.
+\subsection{Description}
+\begin{enumerate}
+    \item Always follow OOP naming convection
+        \begin{itemize}
+            \item class\_create - allocating memory for object and setting fields if needed
+            \item class\_init - only setting fields
+            \item class\_destroy - deallocating memory
+            \item class\_deinit - setting object fields to 0
+        \end{itemize}
+    \item Always hide structure members from users using forward declaration. This will force to use getters and setters instead of directly access to members.
+    \item Try to follow KISS principle (Keep it simple, stupid). Always prefer code simple, without C tricks, with straight logic.
+    \item Try to follow SOLID principles:
+        \begin{itemize}
+            \item Single responsibility principle - one function = one job. Only wrappers and big box functions (like main) can omit this principle.
+            \item Open/closed principle - prefer small functions which can be reuse to build another bigger functionality.
+            \item Liskov substitution principle - this can be omitted, because this principle requires inheritance support by compiler.
+            \item Interface segregation principle - do not put everything to one interface, create instead whole interface hierarchy
+            \item Dependency inversion principle - when function needs more than 1 implementation of sub function, use pointer to functions.
+        \end{itemize}
+    \item When your project will need 2 or more implementation of class, create abstract class (structure with pointers to function). This will allow you to create a polymorphism
+    \item Hidden structure cannot be allocate on stack, but using VLA we can do that. If structure has not big memory allocating to pointers, more efficient way is to allocate object on stack using special macro from \href{https://github.com/Kukos/OOP-in-C}{OOP in C}.
+\end{enumerate}
+
+\subsection{Examples}
+\begin{enumerate}
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+void pair_init(Pair* const pair, const int first, const int second)
+{
+    pair->first = first;
+    pair->second = second;
+}
+
+Pair* pair_create(const int first, const int second)
+{
+    Pair *pair = calloc(1, sizeof(*pair));
+    pair_init(pair, first, second);
+    
+    return pair;
+}
+
+void pair_destroy(Pair* const pair)
+{
+    free(pair);    
+}
+
+void pair_deinit(Pair* const pair)
+{
+    (void)memset(pair, 0, sizeof(*pair));
+}
+
+/* Incorrect */
+Pair *pair_new(const int first, const int second)
+{
+    Pair *pair = calloc(1, sizeof(*pair));
+    pair_init(pair, first, second);
+    
+    return pair;
+}
+
+void pair_delete(Pair* const pair)
+{
+    free(pair);    
+}
+
+\end{lstlisting}
+
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+/* pair.h */
+
+typedef struct Pair Pair;
+
+Pair* pair_create(int first, int second);
+int pair_get_first(const Pair* pair);
+int pair_get_second(const Pair* pair);
+/* etc. */
+
+/* pair.c */
+struct Pair
+{
+    int first;
+    int second;
+};
+
+/* Incorrect */
+/* pair.h */
+
+typedef struct Pair
+{
+    int first;
+    int second;
+} Pair;
+
+Pair* pair_create(int first, int second);
+int pair_get_first(const Pair* pair);
+int pair_get_second(const Pair* pair);
+
+\end{lstlisting}
+
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+ssize_t find_key(const int* const t, const size_t len, const int key)
+{
+	for (size_t i = 0; i < len; ++i)
+	{
+		if (t[i] == key)
+		{
+			return i;
+		}
+	}
+			
+	return -1;
+}
+
+/* Incorrect */
+ssize_t find_key(const int* const t, const size_t len, const int key)
+{
+	if (len == 0) {return -1;}
+	if (t[len - 1] == key) {return len - 1;}
+	return find(t, len - 1, key);
+}
+	
+ssize_t find_key(const int* const t, const size_t len, const int key)
+{
+	size_t i = 0;
+	while (i < len && t[i] != key)
+	{
+		++i;
+	}
+		
+	return (i == len) ? -1 : i;
+}
+	
+\end{lstlisting}
+
+    \item
+\begin{lstlisting}[language=C,style=C99]
+
+/* Corerct (Single responsibility and open closed) */
+int sum(const int* t, size_t len);
+int create_socket(const char* host, int port);
+int create_connection(int socket);
+int send(int fd, const void* data, size_t len);
+void close_connection(int fd);
+
+static inline void init_connection(const char* const host,
+                                   const int port)
+{
+	const int socket = create_socket(host, port);
+	return create_connestion(socket);
+}
+
+static inline void send_sum(const int* const t,
+                            const size_t len,
+                            const int fd)
+{
+	int sum = sum(t, len);
+	send(fd, &sum, sizeof(sum));
+}
+
+/* Incorrect */
+void send_sum(const int* const t, const size_t len)
+{
+	int sum = 0;
+	for (size_t i = 0; i < len; ++i)
+	{
+		sum += t[i];
+	}
+		
+	int fd;
+	fd = /* some code with connection establishing*/
+	
+	write(fd, &sum, sizeof(sum));
+	close(fd); 
+}
+
+/* Correct (Interface Segregation) */
+/* Balanced or Unbalanced */
+typedef struct Tree Tree;
+/* Interface for Self Balancing Trees like RBT */
+typedef struct SBTree SBTree;
+/* Interface for Unbalanced Trees like BST */
+typedef struct UBTree UBTree;
+
+/* Incorrect */
+/* What about tree_balance(Tree *tree)? RBT does not need this function */
+typedef struct Tree Tree;
+
+/* Correct (Dependency inversion) */
+typedef int (*cmp_f)(int a, int b);
+
+/* a < b -> a is before b */
+int cmp(int a, int b);
+
+/* a < b -> a is after b */
+int cmp_rev(int a,int b);
+
+void sort(int *t, size_t len, cmp_f cmp);
+
+/* Incorrect */
+/* a < b -> a is before b */
+void sort(int *t, size_t len);
+
+/* a < b -> a is after b */
+void sort_rev(int *t, size_t len); 
+\end{lstlisting}
+
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+/* rbt.h */
+typedef struct Rbt Rbt;
+
+/* avl.h */
+typedef struct Avl Avl;
+
+/* sbtree.h */
+typedef struct SBTree
+{
+    void* tree;
+    bool (*key_exist)(const void *tree, const void *key);
+    /* pointers to another functions */
+} SBTree;
+
+static inline bool sbtree_key_exist(const SBTree* tree,
+                                    const void* key)
+{
+    return tree->key_exist(tree->tree, key);
+}
+
+/* Incorrect */
+/* rbt.h */
+typedef struct Rbt Rbt;
+
+/* avl.h */
+typedef struct Avl Avl;
+
+/* RBT is compatible from functionality point of view, but interface is not created, this is incorrect */
+\end{lstlisting}
+
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+void foo(const size_t payload)
+{
+    Object* ptr_p;
+    
+    OBJECT_ALLOCA(ptr_p, object_sizeof() + payload);
+    object_init(ptr_p, "Alice play with Bob");
+    
+    /* some code */
+    
+    object_deinit(ptr_p);
+}
+
+/* Incorrect, main memory will be alloc on heap, there is no advantage to alloc list on stack, also by using special macro readability is decreased */
+void foo(void)
+{
+    List *list_p;
+    
+    OBJECT_ALLOCA(list_p, list_sizeof());
+    
+    /* some code */
+}
+\end{lstlisting}
+\end{enumerate}
+
+\subsection{Reasons}
+\begin{enumerate}
+    \item Convection helps with implementation of interfaces and also improve readability
+    \item More private memory = more secure program. Forward declaration force compiler to produce an error when programmer uses directly access to structure member. This will bring encapsulation to project
+    \item KISS improves readability and maintainability. Also force user to create smaller functions which improves reusability.
+    \item SOLID has been created for full object oriented programming languages. But following those principles in 80-90\% will improve OOP style in C.
+    \item Interface and abstract classes are very common strategy to create class (functionality) hierarchy. This can be done in pure C also by using simple structure with pointer to functions.
+    \item When structure is small and allocate huge chunk of memory inside (like vector) there is no advantage to allocate object on stack (from optimization point of view). That's why you need to be careful with allocating objects on stack. This is tricky and requires special macro. More simple and readable solution is to use class\_create function.
+\end{enumerate}

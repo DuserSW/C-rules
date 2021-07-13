@@ -1,0 +1,389 @@
+\section{Performance}
+\begin{quote}
+    "The real problem is that programmers have spent far too much time worrying about efficiency in the wrong places and at the wrong times; premature optimization is the root of all evil (or at least most of it) in programming." 
+    \begin{flushright}
+    Donald Ervin Knuth
+    \end{flushright}
+\end{quote}
+
+\subsection{Description}
+\begin{enumerate}
+    \item Prefer aliasing using restrict keyword.
+    \item Inline functions results in each call to an inline function being substituted by its body, instead of normal call. This results in faster code bit it adversely affects code size, particularly if the inline function is large and used often. So use inline wisely.
+    \begin{itemize}
+        \item All functions in headers should be inline.
+        \item Static functions called several times in loops should be inline.
+        \item Wrappers for a few functions should be inline.
+        \item Getter, setter should be inline.
+        \item Long functions should not be inline.
+        \item Complicated functions should be inline.
+    \end{itemize}
+    \item Aliasing using local variable.
+    \item Prefer stack than heap.
+    \item Prefer sequential memory operation instead of directly writing assignment.
+    \item Always try to factor out as much as possible.
+    \item Avoid bitwise operations. Prefer use bool array or a few bool variables if possible and if memory is not critical resource.
+    \item Use static memory in function when:
+        \begin{itemize}
+            \item function will be used only in 1 thread
+            \item variable is huge, is an array or a structure
+            \item Memory is set by developer, like int t[] = \{1, 2, 3, 4\};
+            \item function will be call several times
+        \end{itemize}
+    \item Do not use constructor and destructor in loop if possible. Use them once and change structure value by using init function.
+    \item Prefer flexible array member instread of pointer to void.
+\end{enumerate}
+
+\subsection{Examples}
+\begin{enumerate}
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+void foo(int* restrict a_p, int* restrict b_p);
+
+/* Correct */
+void foo(void* restrict a_p, int* restrict b_p);
+
+/* Incorrect. Aliasing useless. Pointers to different base types are not supposed to alias */
+void foo(int* restrict a_p, double* restrict b_p);
+\end{lstlisting}
+
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct, getter should be inline */
+static inline int pair_get_first(const Pair* const p)
+{
+    return p->first;
+}
+    
+/* Correct, this is wrapper for 3 functions */
+static inline void foo_wrapper(void)
+{
+    foo_func1();
+    foo_func2();
+    foo_func3();
+}
+
+/* Correct function sum is simple and is call several time in loop */
+static inline int add7(const int a, const int b)
+{
+    return (a % 7 + b % 7) % 7;
+}
+
+int foo(const int* const t, const size_t size)
+{
+    int sum = 0;
+    for (size_t i = 0; i < size; ++i)
+    {
+        sum = add7(sum, t[i]);
+    }
+    
+    return sum;
+}
+
+/* Incorrect. Function is to long to inline */
+static inline void foo(void)
+{
+    /* over 80 lines with a lot of code */
+}
+
+/* Incorrect. Function is too complicated to be inline  */
+int foo(void)
+{
+    int res;
+    /* allocation for structures */
+    /* preprocessing */
+    /* data processing */
+    return res;
+}
+\end{lstlisting}
+    
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+void foo(int* const a_p, const size_t size)
+{
+    int a = *a_p;
+    
+    for (size_t i = 0; i < size; ++i)
+    {
+        a += bar(i);
+    }
+    
+    *a_p = a;
+    
+    /* some code */
+}
+
+/* Incorrect */
+void foo(int* const a_p, const size_t size)
+{
+    for (size_t i = 0; i < size; ++i)
+    {
+        *a_p += bar(i);
+    }
+    
+    /* some code */
+}
+\end{lstlisting}
+    
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Let's say we need to process any container in loop. After loop this container is no longer needed */
+
+
+/* Correct. Container will be created on stack */
+Pair* pair_p = pair_create();
+pair_init(pair_p);
+
+for (size_t i = 0; i < CONSTANT; ++i)
+{
+    process(pair_p);
+    save(pair_p);
+}
+
+/* Incorrect. If main parts of list (like: head, tail, length) are on the stack, but every single node on heap, there is no sense. Still we process container allocated at heap */
+List* list_p = list_create();
+
+for (size_t i = 0; i < CONSTANT; ++i)
+{
+    process(list_p);
+    save(list_p);
+}
+\end{lstlisting}
+    
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+typedef struct Foo
+{
+    int a;
+    int b;
+} Foo;
+
+Foo foo1 = {2, 3};
+Foo foo2 = {0};
+
+/* Correct */
+(void)memcpy(&foo2, &foo1, sizeof(foo1));
+
+/* This is also correct */
+foo2 = foo1;
+
+/* Incorrect */
+foo2.a = foo1.a;
+foo2.b = foo1.b;
+
+/* Correct */
+(void)memset(&foo2, 0, sizeof(foo2));
+
+/* Incorrect */
+foo2.a = 0;
+foo2.b = 0;
+\end{lstlisting}
+    
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+static void foo(int* const t, const size_t size)
+{
+    int val = calculateVal();
+    for (size_t i = 0; i < size; ++i)
+    {
+        t[i] += val;
+    }
+}
+
+/* Incorrect */
+static void foo(int* const t, const size_t size)
+{
+    for (size_t i = 0; i < size; ++i)
+    {
+        t[i] += calculateVal();
+    }
+}
+
+
+/* Correct */
+static void foo(...)
+{
+    func1();
+    if (cond1)
+    {
+        func2();
+    }
+    else
+    {
+        func3();
+    }
+}
+
+/* Incorrect */
+static void foo(...)
+{
+    if (cond1)
+    {
+        func1();
+        func2();
+    }
+    else
+    {
+        func1();
+        func3();
+    }
+}
+\end{lstlisting}
+
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+bool cond1;
+bool cond2;
+bool cond3;
+
+cond1 = /* some code */
+cond2 = /* some code */
+cond3 = /* some code */
+
+/* Correct, To collect separable options using an int is ok */
+int options;
+
+options = O_WRITE | O_TRUNCATE;
+
+int fd = open("./file", options);
+
+/* Incorrect */
+int conds = 0;
+
+conds |= cond1 << 0;
+conds |= cond2 << 1;
+conds |= cond3 << 2;
+
+if (conds & (1 << 2))
+{
+    /* cond2 is TRUE */
+}
+\end{lstlisting}
+    
+    
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct array is big and has constant values */
+int foo(const size_t idx)
+{
+    static const t[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+    return idx < 10 ? t[idx] : 0; 
+}
+
+/* Incorrect. Single variable is not a huge struct or array */
+int foo(void)
+{
+    static int a;
+    
+    /* some code with a */
+    
+    return a;
+}
+\end{lstlisting}
+
+
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct. Allocation is moved out from loop */
+void foo(void)
+{
+    Pair* pair_p = pair_create(0, 0);
+    for (int i = 0; i < CONST; ++i)
+    {
+        pair_init(pair, i, CONST - i);
+        
+        /* some code with pair */
+    }
+    
+    pair_destroy(pair_p);
+}
+
+
+/* Incorrect. Allocation in loop is too costly */
+void foo(void)
+{
+    for (int i = 0; i < CONST; ++i)
+    {
+        Pair* pair_p = pair_create(i, CONST - i);
+        /* some code with pair */
+        
+        pair_destroy(pair_p);
+    }
+}
+
+\end{lstlisting}
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct, sizeof(List_node) = sizeof(next_p) + sizeof(size_of) */
+struct List_node
+{
+    struct List_node* next_p;   /* pointer to next node */
+    size_t size_of;             /* size of node */
+
+    byte_t data[];              /* placeholder for data */
+};
+
+/* Incorrect. Always prefer FAM (Flexible Array Member) instead of pointer to void */
+struct List_node
+{
+    struct List_node* next_p;   /* pointer to next node */
+    size_t size_of;             /* size of node */
+
+    void* data_p;               /* placeholder for data */
+};
+
+/* Incorrect. It is not C89, sizeof(List_node) = sizeof(next_p) + sizeof(size_of) + sizeof(data) */
+struct List_node
+{
+    struct List_node* next_p;   /* pointer to next node */
+    size_t size_of;             /* size of node */
+
+    byte_t data[1];             /* placeholder for data */
+};
+
+/* Incorrect. It is not GNU99, sizeof(List_node) = sizeof(next_p) + sizeof(size_of) */
+struct List_node
+{
+    struct List_node* next_p;   /* pointer to next node */
+    size_t size_of;             /* size of node */
+
+    byte_t data[0];             /* placeholder for data */
+};
+\end{lstlisting}
+\end{enumerate}
+
+\subsection{Reasons}
+\begin{enumerate}
+    \item The basic idea of restrict is relatively simple: it tells the compiler that the pointer in question is the only access to the object it points to.In other words, with restrict we are telling the compiler that the object does not alias with any other object that the compiler handles in this part of code. It should be used if applicable but remember restrict violation is undefined behavior. Restrict keyword is needed only for compatible types like: int* int*, double* double* etc. Remember that void* and char* is compatible with every type, and restrict keyword should be added.
+    \item There are several advantages to using inline functions:
+        \begin{itemize}
+            \item Inline function allows to write real pure functions.
+            \item No function call overhead.
+            \item As the code is substituted directly, there is no overhead, like saving and restoring registers. Optimizer works for single function, so we have better scheduling registers and cache.
+            \item Lower argument evaluation overhead. The overhead of parameter
+            passing is generally lower, since it is not necessary to copy variables. If
+            some of the parameters are constants, the compiler can optimize the
+            resulting code even further.
+            \item No function call means no branching of the code thus no pipeline flush.
+        \end{itemize}
+        Also disadvantages:
+        \begin{itemize}
+            \item Code size increase. Mainly if inline function is used in many places.
+            \item Large code makes cache misses in .code section and we must wait for reading code from RAM.
+            \item Using huge inline functions which are called once or twice, not in loop usually makes code slower. (Look at the two previous disadvantages).
+        \end{itemize}
+    \item It allows to generate better code, if during the execution we can reduce the number of memory accesses instead of reading the value from memory every time it is used.
+    \item Malloc is too costly on the other hand allocations on stack is only subtraction stack pointer. Additionally memory from stack will be automatically freed instead of heap and this is the most important advantage.
+    \item Sequential memory access is much faster than random access (one by one). RAM can be trigger into burst mode which enables transfer a few DWORDS in 1 cycle using dedicated long registers. Every functions from string.h have this property. So memset, memcpy, memmove, memcmp should be used to work with big memory chunk.
+    \item Factoring out as mach as possible use much better pipeline and generate smaller code on each branch.
+    \item This rule should be take into account after choosing design. Bitwise operation costs few cycles, always prefer single move. E.g. if we have POSIX options, use normally bitwise operations. On the other hand if we have got conditions, it would be better to save these operations in separately variables.
+    \item If array or structure is on stack and it is filled by values written manually, in every function call this array or structure will be setted again and again. If this array of structure is quite huge and we know thier usage is safety (only 1 thread), this memory should be static. (ELF, section .bss)
+    \item Always, first design and then think about performance. It would be better to make allocate memory on heap once and then changed many times it instead of repeatedly alloc - dealloc operations.
+    \item If we use FAM instead of pointer to void, we have got 1 calloc, memcpy, memset instead of 2. Less fragmentation, better SSE will decrease bottlenecks connected with memory overhead. Also prefer [ ] than [1] because you won't been calculate structure size manually.
+\end{enumerate}

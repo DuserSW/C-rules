@@ -1,0 +1,141 @@
+\section{Types}
+\subsection{Description}
+\begin{enumerate}
+    \item When the variable may contains specific values (0 - off, 1 - on) new type should be created.
+    \item Never typedef arrays and pointers.
+    \item Enum, structure, union should create new types.
+    \item Always use type depending on your job.
+\end{enumerate}
+
+\subsection{Examples}
+\begin{enumerate}
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct. This type tells exactly what this variable represents */
+typedef enum parser_state_t
+{
+    PARSER_STATE_WORKING,
+    PARSER_STATE_STOPPED,
+} parser_state_t;
+
+parser_state_t parser_state = PARSER_STATE_STOPPED;
+
+parser_state = parse(...);
+
+if (parser_state == PARSER_STATE_WORKING)
+{
+    do_this();
+}
+else
+{
+    do_this();
+}
+
+/* Incorrect */
+uint8_t parser_state = 0;
+
+parser_state = parse(...);
+
+if (parser_state == 0)
+{
+    do_this();
+}
+else
+{
+    do_this();
+}
+\end{lstlisting}     
+    
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct. Typedef structures and basic types */
+typedef uint8_t byte_t;
+typedef Rbt Rbt;
+
+/* Incorrect. Never do this ! */
+typedef void* void_ptr;
+typedef int int_array[CONSTANT];
+\end{lstlisting}    
+    
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+typedef enum option
+{
+    OPTION_1,
+    OPTION_2,
+} option_t;
+
+typedef struct Pair
+{
+    int first;
+    int second;
+} Pair;
+
+/* Incorrect */
+enum option
+{
+    OPTION_1,
+    OPTION_2,
+} option;
+
+struct Pair
+{
+    int first;
+    int second;
+} Pair;
+
+\end{lstlisting}    
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct, if you need to represent byte use uint8_t from stdint.h */
+typedef uint8_t byte_t;
+typedef char byte_t; /* Possible */
+
+/* Incorrect */
+typedef uint8_t byte;
+typedef char BYTE;
+
+
+/* Correct, if you need to represent size or length use size_t from stddef.h */
+const size_t array_size = sizeof(array) / sizeof(array[0]);
+
+/* Incorrect */
+const uint64_t array_size = sizeof(array) / sizeof(array[0]);
+
+
+/* Correct, if you need to return size or length from function, but '-1' is error message use ssize_t from sys/types.h */
+ssize_t darray_get_length(...);
+
+/* Incorrect */
+int64_t darray_get_length(...);
+
+
+/* Correct, if you need to subtract two pointer, use ptrdiff_t from <stddef.h> */
+int numbers[] = { /* lots of members */ };
+ 
+int* p1_p = &numbers[18]; 
+int* p2_p = &numbers[23];
+
+const ptrdiff_t diff = p2 - p1;
+
+/* Incorrect */
+const int64_t diff = p2 - p1;
+\end{lstlisting}
+\end{enumerate}
+
+\subsection{Reasons}
+\begin{enumerate}
+    \item It will make code more readable for other programmers.
+    \item This practices makes code really hard to understand.
+    \item By the new type we can represent new abstraction. It also helps to keep cohesion in code.
+    \item For representing:
+        \begin{itemize} 
+            \item unsigned numbers - use unsigned types.
+            \item signed numbers - use signed types.
+            \item unsigned numbers with possible error code (-1) - use ssize\_t.
+            \item floating point - use double, long double types with proper precision.
+            \item etc.
+        \end{itemize}
+\end{enumerate}

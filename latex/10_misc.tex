@@ -1,0 +1,510 @@
+\section{Miscellaneous}
+\subsection{Description}
+\begin{enumerate}
+    \item "do - while" as exception of \{ \} placement.
+    \item When using sizeof(), always prefer using variable name instead of type.
+    \item Always write first scope (static, extern) of function.
+    \item Always add comma after enum option.
+    \item Always alias pointer to type, not to variable name.
+    \item Never use unsigned types to reverse loop (from N to 0).
+    \item Never play with C syntax. 
+    \item Always use one variable statement in for loop.
+    \item Never play with bitwise operator when you want to make aryth.
+    \item Never use auto, register keywords.
+    \item Value in enum should contains name of enum as a prefix of value.
+    \item Function without argument list should have void as argument.
+    \item Functionlike macro shall not include the ending semicolon.
+    \item Functionlike macro without input argument must have brackets \(\).
+    \item Use goto only for centralized exiting of functions.
+    \item Always add default statement to switch case.
+    \item Prefer switch case when a few point cases are possible instead of if else chain.
+    \item Global variables should be defined in header but declared only in source files.
+\end{enumerate}
+
+\subsection{Examples}
+\begin{enumerate}
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+do {
+    /* some code */
+} while (0);
+
+/* Incorrect */
+do
+{
+    /* some code */
+}
+while (0);
+\end{lstlisting}
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+int* intptr_p = calloc(sizeof(*intptr_p), 5);
+
+/* Incorrect */
+int* intptr_p = calloc(sizeof(int*), 5);
+
+Huge_struct foo = { /* Proper initialization */ };
+Huge_struct bar;
+
+/* Correct */
+(void)memcpy(&bar, &foo, sizeof(foo));
+
+/* Incorrect */
+(void)memcpy(&bar, &foo, sizeof(Huge_struct));
+\end{lstlisting}
+    
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+static inline foo(void);
+
+/* Incorrect */
+inline static foo(void);
+\end{lstlisting}
+    
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+enum foo
+{
+    OPTION1,
+    OPTION2,
+};
+
+/* Incorrect */
+enum foo
+{
+    OPTION1,
+    OPTION2 /* <-- there is no comma */
+};
+\end{lstlisting}   
+    
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+int* intptr_p = NULL;
+
+/* Incorrect */
+int *intptr_p = NULL;
+\end{lstlisting}
+
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+for (ssize_t i = CONSTANT; i > 0; --i)
+{
+    process();
+}
+
+/* Incorrect. This is infinite loop. Better idea would be us signed integer for loop counter */
+for (size_t i = CONSTANT; i > 0; --i)
+{
+    process();
+}
+\end{lstlisting}
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+while (ptr_p[i] != '\0') 
+{
+    ++i;
+}
+
+/* Incorrect */
+while (*ptr_p++ != '\0');
+\end{lstlisting}   
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+int b = 1; 
+
+for (size_t a = 0; a < 100; ++a) 
+{ 
+    b *= 2
+}
+
+/* Incorrect */
+for (int a = 0, b = 1; a < 100; a++, b *= 2);
+\end{lstlisting} 
+    
+    
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+int a = b % 32;
+int c = b * 8;
+int d = b / 16;
+
+/* Correct we are sure that c = 2^k */
+int a = b & (c - 1);
+
+/* Incorrect */
+int a = b & 31;
+int c = b << 3;
+int d = b >> 4;
+\end{lstlisting} 
+
+
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+int sum(const int* const t, const size_t size)
+{
+    int sum = 0;
+    for (size_t i = 0; i < size; ++i)
+    {
+        sum += t[i];
+    }
+    
+    return sum;
+}
+
+/* Incorrect */
+int sum(const int* const t, const size_t size)
+{
+    auto int sum = 0;
+    for (register size_t i = 0; i < size; ++i)
+    {
+        sum += t[i];
+    }
+    
+    return sum;
+}
+\end{lstlisting} 
+
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+typedef enum parser_state_t
+{
+    PARSER_STATE_WORKING,
+    PARSER_STATE_STOPPED,
+} parser_state_t;
+
+/* Incorrect */
+typedef enum parser_state_t
+{
+    WORKING,
+    STOPPED,
+} parser_state_t;
+\end{lstlisting} 
+    
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+void foo(void); /* OK. There is no arguments list */
+
+/* Incorrect */
+void foo(); /* Is this variadic function ? */
+\end{lstlisting}    
+    
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+#define PRINT1() error("error print\n")
+
+if (ptr_p == NULL)
+{
+    ERROR1();
+    return -1;
+}
+
+/* Incorrect. Do not add semicolon at the ending */
+#define PRINT3() error("error print\n"); 
+
+PRINT3();
+\end{lstlisting}
+
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+#define FOO() print("fancy print\n")
+
+FOO();
+
+/* Incorrect. Functionlike macro must have brackets even if there is no arguments at input */
+#define FOO print("fancy print\n")
+
+FOO;
+
+/* What's now ? Not an ICE ? */
+int a = FOO;
+\end{lstlisting}
+
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+int func(int a)
+{
+    int result = 0;
+    char* buffer_p = calloc(sizeof(*buffer_p), CONSTANT);
+    
+    if (!buffer_p)
+    {
+        return -1;
+    }
+    
+    if (condition)
+    {
+        while (loop)
+        {
+            process();
+        }
+        
+        result = 1;
+        goto out_free_buffer;
+    }
+    
+    /* some code */
+    
+out_free_buffer:
+    FREE(buffer_p);
+    return result;
+}
+
+/* Incorrect*/
+int func(int a)
+{
+    int result = 0;
+    char* buffer_p = calloc(sizeof(*buffer_p), CONSTANT);
+    
+    if (condition)
+    {
+        while (loop)
+        {
+            if (second cond)
+            {
+                goto end;
+            }
+        }
+        
+        FREE(buffer_p);
+        return 1;
+    }
+
+end:
+    FREE(buffer_p);
+    return -1;
+}
+\end{lstlisting}
+
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+void foo(int val)
+{
+    switch (val)
+    {
+        case 1:
+        {
+            /* some code */
+            break;
+        }
+        case 2:
+        {
+            /* some code */
+            break;
+        }
+        default:
+        {
+            fprintf("ERROR, Unsupported value:%d\n", val);
+        }
+    }
+}
+
+/* Incorrect */
+void foo(int val)
+{
+    switch (val)
+    {
+        case 1:
+        {
+            /* some code */
+            break;
+        }
+        case 2:
+        {
+            /* some code */
+            break;
+        }
+    }
+}
+
+/* Incorrect, now default is not needed, but if we add some values to enum in future this switch case will safe us from bugs related to not checking supporting values */
+typedef enum option
+{
+    OPTION_1,
+    OPTION_2,
+} option_t;
+
+void foo(option op)
+{
+    switch (op)
+    {
+        case OPTION_1:
+        {
+            /* some code */
+            break;
+        }
+        case OPTION_2:
+        {
+            /* some code */
+            break;
+        }
+        default:
+        {
+            fprintf("ERROR, Unsupported value:%d\n", val);
+        }
+    }
+}
+\end{lstlisting}
+
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+int foo(int val)
+{
+    switch (val)
+    {
+        case 1:
+        {
+            /* some code */
+            break;
+        }
+        case 2:
+        {
+            /* some code */
+            break;
+        }
+        case 5:
+        {
+            /* some code */
+            break;
+        }
+        case 100:
+        {
+            /* some code */
+            break;
+        }
+        default:
+        {
+            fprintf("ERROR, Unsupported value:%d\n", val);
+        }
+    }
+}
+
+/* Correct, this is not point comparision, so if else is needed */
+int foo(int val)
+{
+    if (val > 1 && val < 5)
+    {
+        /* some code */
+    }
+    else if (val > 6 && val < 100)
+    {
+        /* some code */
+    }
+    else if (val < 500)
+    {
+        /* some code */
+    }
+    else
+    {
+        /* some code */
+    }
+}
+
+/* Correct, double is not compatible with int, long ... so if else is needed */
+double foo(double val)
+{
+    if (val == 0.0)
+    {
+        /* some code */
+    }
+    else if (val == 1.0)
+    {
+        /* some code */
+    }
+    else if (val == 2.0)
+    {
+        /* some code */
+    }
+    else
+    {
+        fprintf("ERROR, Unsupported value:%lf\n", val);
+    }
+}
+
+/* Incorrect */
+int foo(int val)
+{
+    if (val == 1)
+    {
+        /* some code */
+    }
+    else if (val == 2)
+    {    
+        /* some code */
+    }
+    else if (val == 5)
+    {
+        /* some code */
+    }
+    else if (val == 100)
+    {
+        /* some code */
+    }
+}
+\end{lstlisting}
+
+\item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+
+/* ascii.h */
+extern const char new_line;
+
+/* ascii.c */
+const char new_line = '\n';
+
+/* Incorrect */
+
+/* ascii.c */
+const char new_line = '\n';
+
+\end{lstlisting}
+\end{enumerate}
+
+\subsection{Reasons}
+\begin{enumerate}
+    \item This is easier to read do while loop, when condition is in the same line as loop ending
+    \item We want to avoid problems when changing the type. After change of type, the sizeof operator can remain unchanged.
+    \item It is easier to read first scope of function (global, file) and then is inline or not.
+    \item We always add comma at the end of enum option because there is no difference after added new option in enum.
+    \item Pointer is a part of type, not a variable name.
+    \item This rules helps to avoid infinite loops and errors related to this.
+    \item We want to keep our code easy to read.
+    \item As above.
+    \item Keyword auto and register are obsolete and there are not applicable for modern C code.
+    \item Using deprecated keywords is not a good code style.
+    \item It is harder to static analyze code without prefix name of enum values. 
+    \item We want to avoid variadic functions in code, which is not really variadic functions.
+    \item Functionlike macro must be called like normal function (with semicolon at the end of function call). So, do not interfere normal function call and never include semicolon at the end of functionlike macro.
+    \item If \#define is functionlike macro, even without input arguments, it should be called like normal function. 
+    It's easy to make a mistake and assign functionlike macro to variable.
+    \item The rational for using gotos is:
+        \begin{itemize}
+            \item Unconditional statements are easier to understand and follow.
+            \item Nesting is reduced.
+            \item Errors by not updating individual exit points when making modifications are prevented.
+        \end{itemize}
+    \item Adding default statement is safe in all cases, even if we write down all possible values in cases. We can't be sure that in future no values are added.
+    \item Switch case is an example of point condition, only 1 value can be matched with 1 condition. That's why compiler can change comparison chain to simple jump table. Of course you must remember that only types compatible with int, long ... can be used in switch case.
+    \item Header are copying into source file, so declaration will be pasted into a few source file with the same name and value. This is a symbol redeclaration error from linker. To avoid it declaration is only in 1 source file (memory is allocated only once), in header we have only "aliasing" to the variable.
+\end{enumerate}

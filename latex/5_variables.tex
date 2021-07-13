@@ -1,0 +1,135 @@
+\section{Variables}
+\subsection{Description}
+\begin{enumerate}
+    \item Always minimize the scope of variables and constants.
+    \item Always prefer function local variables than file local variables and file local variables than global variables.
+    \item Do not initialize with zeros file variables and global variables.
+    \item Do not initialize enum first value with 0.
+    \item Const key word should be used when variable is read only.
+    \item When defining an array variable, do not specify its size if is it possible.
+\end{enumerate}
+
+\subsection{Examples}
+\begin{enumerate}
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+void foo(void)
+{
+    for (size_t i = 0; i < CONSTANT; ++i)
+    {
+        /* some code */
+    }
+}
+
+/* Incorrect */
+void foo(void)
+{
+    size_t i;
+    
+    for (i = 0; i < CONSTANT; ++i)
+    {
+        /* some code */
+    }
+}
+\end{lstlisting}
+    
+    
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+int f(int a)
+{
+    static int carry;
+    return a + (++carry);
+}
+
+/* Incorrect */
+static int carry;
+
+int f(int a)
+{
+    return a + (++carry);
+}
+\end{lstlisting}
+
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+typedef enum option
+{
+    OPTION_1,
+    OPTION_2,
+} option_t;
+
+typedef enum option
+{
+    OPTION_1 = 1 << 0,
+    OPTION_2 = 1 << 1,
+} option_t
+
+/* Incorrect */
+typedef enum option
+{
+    OPTION_1 = 0,
+    OPTION_2,
+} option_t;
+
+\end{lstlisting}
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+parser_status_t global_status;
+static parser_status_t parser_status[CONSTANT];
+
+/* Incorrect. File and global variables will be initialize by zero by compiler. Do not take a compiler job */
+parser_status_t global_status = 0;
+static parser_status_t parser_status[CONSTANT] = {0};
+\end{lstlisting}
+    
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+const size_t list_length = list_get_length(list_p);
+
+if (list_length > CONSTANT)
+{
+    do_this();
+}
+
+/* Incorrect. If length of list is read only, variable must be const. It is only information for programmer (Of course compiler will throw out const keyword) */
+size_t list_length = list_get_length(list_p);
+
+if (list_length > CONSTANT)
+{
+    do_this();
+}
+\end{lstlisting}    
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+int64_t array[] = { 1, 2, 4, 8, 16, 32 };
+
+/* Incorrect. If possible do not create another define for 
+array size */
+int64_t array[CONSTANT] = { 1, 2, 4, 8, 16, 32 };
+
+/* Correct. Remember, string with custom defined termination should be defined without size */
+const char str[] = "Hello world\n";
+
+/* Incorrect. What about '\0' ? */
+const char str[13] = "Hello world\n";
+\end{lstlisting}   
+\end{enumerate}
+
+\subsection{Reasons}
+\begin{enumerate}
+    \item Smaller scope of variables makes code much easier to maintain.
+    \item Code with smaller number of static or global variables will be easier to maintain and develop.
+    \item ISO C99 tells that it is compiler job.
+    \item As above.
+    \item Const keyword should tells programmer that this variable is read-only.
+    \item If declare and initialize array from brace-enclosed list, do not add size of array, it is compiler job.
+\end{enumerate}

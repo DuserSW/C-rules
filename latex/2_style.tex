@@ -1,0 +1,421 @@
+\section{Style}
+Clang-format is a tool to format C code according to a set of rules and heuristics. Like most tools, it is not perfect nor covers every single case, but it is good enough to be helpful. Clang-format is specially useful when moving code around and aligning/sorting. Help you follow the coding style rules, specially useful for those new in this project or working at the same time in several projects with different coding styles.
+
+\subsection{Indentation}
+Only spaces should be used. Indentation should be set to 4 spaces.
+
+\subsection{Breaking long lines and strings}
+Long line is defined as line with more than 140. Every long line should be split into more lines using some rules.
+\subsubsection{Description}
+\begin{enumerate}
+    \item Break line after operator.
+    \item Do not break structure chain. If structure chain will be longer than 140 chars, split it and rewrite it as pointers.
+    \item Breaking function parameters should be aligned to each other.
+\end{enumerate}
+
+\subsubsection{Examples}
+\begin{enumerate}
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct. Break after an operator */
+if (condition &&
+    condition)
+{
+    /* some code */
+}
+
+/* Incorrect if line with conditions is longer than 140 characters */
+if (condition && condition)
+{
+    /* some code */
+}
+\end{lstlisting}    
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+a_p->b_p->c.d_p->g.f;
+
+/* Correct */
+ptr_p = a_p->b_p;
+ptr_p->c.d_p->g.f;
+
+/* Incorrect */
+a_p->b_p->c.
+    d_p->g.f;
+\end{lstlisting} 
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct. Break after comma. Function parameters should be aligned */
+void foo(arg1,
+         arg2,
+         arg3);
+         
+/* Incorrect if argument list is longer than 140 characters */
+void foo(arg1, arg2, arg3);
+\end{lstlisting}  
+\end{enumerate}
+
+\subsubsection{Reasons}
+\begin{enumerate}
+    \item This style makes code more readable.
+    \item Broken structure chain makes code hard to read and understand.
+    \item Squashing code should be avoided. Aligned function arguments makes easier to analyze.
+\end{enumerate}
+
+\subsection{Placing braces and spaces}
+\subsubsection{Description}
+\begin{enumerate}
+    \item Always after C keyword (if, switch, case, for, do, while), before and after operator (+, -, *, /), before comma space should be inserted. Exception is sizeof.. 
+    \item Structure operators (->, .) and array operator([ ]) should be used without spaces between them.
+    \item Braces should not be avoided in 1-line statements.
+    \item Braces should be always used in switch case.
+\end{enumerate}
+
+\subsubsection{Examples}
+\begin{enumerate}
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+for (size_t i = 0; i < ARRAY_SIZE(array); ++i)
+{
+    printf("%4d", array[i]);
+}
+
+/* Incorrect */
+for(size_t i = 0; i < ARRAY_SIZE(array); ++i)
+{
+    printf("%4d", array[i]);
+}
+
+/* Correct */
+if (condition)
+{
+    do_this();
+}
+
+/* Incorrect */
+if(condition)
+{
+    do_this();
+}
+
+/* Correct */
+a + b     /* addition operator */
+a - b     /* subtraction operator */
+a / b     /* division operator */
+a % b     /* modulus operator */
+a ^ b     /* bitwise xor operator */
+a & b     /* bitwise and operator */
+a | b     /* bitwise or operator */
+a < b     /* less than operator */
+a <= b    /* less than or equal to operator */
+a > b     /* greater than operator */
+a >= b    /* greater than or equal to operator */
+a == b    /* equal to operator */
+a != b    /* not equal to operator */
+a && b    /* logical and operator */
+a || b    /* logical or operator */
+a << b    /* shift left operator */
+a >> b    /* shift right operator */
+a = b     /* assignment operator */
+a ? b : c /* ternary operator */
+\end{lstlisting}  
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+matrix[5][5] = 12;
+
+/* Incorrect */
+matrix [5] [5] = 12; 
+
+/* Correct */
+list_p->head_p = NULL;
+
+/* Incorrect */
+list_p -> head_p = NULL;
+    
+/* Correct */
+t[]       /* array operator */
+t()       /* function call operator*/
+t.a       /* member operator */
+t->a      /* arrow operator */
+*t        /* dereference operator */
+&t        /* address operator */
+~t        /* bitwise negation operator (unary) */
+!t        /* logic negation operator */
+++t       /* preincrementation operator */
+t++       /* postincrementation operator */
+--t       /* predecrementation operator */
+t--       /* postdecrementation operator */
+sizeof(t) /* sizeof operator */
+\end{lstlisting} 
+    
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+for (size_t i = 0; i < ARRAY_SIZE(array); ++i)
+{
+    printf("%4d", array[i]);
+}
+
+/* Incorrect */
+for (size_t i = 0; i < ARRAY_SIZE(array); ++i)
+    printf("%4d", array[i]);
+
+/* Correct */
+if (condition)
+{
+    do_this();
+}
+
+/* Incorrect */
+if (condition)
+    do_this();
+\end{lstlisting}      
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+switch (val)
+{
+    case 1:
+    {
+        do_this();
+        calculate();
+        break;
+    }
+    case 2:
+    {
+        /* some code */
+    }
+    default:
+    {
+        ERROR("something bad has happened\n");
+        break;
+    }
+}
+
+/* Incorrect */
+switch (val)
+{
+    case 1:
+        do_this();
+        calculate();
+        break;
+    case 2:
+        foo();
+        break;
+    default:
+        ERROR("something bad has happened\n");
+        break;
+}
+\end{lstlisting} 
+
+\end{enumerate}
+
+\subsubsection{Reasons}
+\begin{enumerate}
+    \item It is easier to read special language keywords and operator with space before them.
+    \item It looks much better when array and structure operators are one sequence of characters.
+    \item Code has to be readable that is why braces cannot be avoided in one line statements. Instead of it, ternary operator can be use.
+    \item It allows to dismiss mistakes and allocate memory on stack if it is needed.
+\end{enumerate}
+
+% Bez przykladu bo bedzie clang-format
+\subsection{White characters}
+All trailing whitespaces should be deleted before commit.
+
+% Zbyt proste na przyklad wiec nie ma przykladu
+\subsection{Commenting}
+Do not use // as comment, even if comment has only 1 line. This is cpp specific. C comment operator should be used: /* */. To comment documentation, doxygen comment operator should be used: /** */
+
+\subsection{Casting}
+
+\subsubsection{Description}
+
+\begin{enumerate}
+    \item Pointer to void should be never cast to and from
+    \item All compatible and incompatible types should be cast
+    \item Not used function parameters should be cast to void
+    \item Not used returned value where value describes error of function should be cast to void
+    \item Not used returned value from system functions should be always cast to void
+\end{enumerate}
+
+\subsubsection{Examples}
+
+\begin{enumerate}
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+int c = 0;
+void* vptr_p = &c;
+
+/* Incorrect */
+int b = 5;
+void* vptr_p = (void *)&b;
+
+/* Incorrect */
+int a = 3;
+int* ptr_p = &a;
+void* vptr_p = (void *)ptr;
+\end{lstlisting}
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+char a = '0';
+int8_t b = (int8_t)a;
+
+/* Incorrect */
+char a = '0';
+int8_t b = a;
+
+/* Correct */
+int c = 2;
+long d = (long)c;
+
+/* Correct */
+int c = 2;
+long d = c;
+\end{lstlisting}
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+void foo(int* a_p, int b, int c)
+{
+    /* c in no longer needed */
+    (void)c;
+    
+    /* some code */
+}
+
+/* Incorrect */
+void foo(int* a_p, int b, int c)
+{
+    /* c in no longer needed but not case to void */
+    
+    /* some code */
+}
+\end{lstlisting}
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+(void)strncpy(dst, src, size_of);
+
+/* Incorrect because printf returns number of 
+characters , not error */
+(void)printf("Hello world\n") ;
+\end{lstlisting}
+    
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct because write makes syscall and returns number of bytes written, which can be used to check success or -1 if failure */
+(void)write(fd, &buf, strlen(buf));
+
+/* Incorrect */
+write(fd, &buf, strlen(buf));
+\end{lstlisting}
+\end{enumerate}
+
+\subsubsection{Reason}
+\begin{enumerate}
+    \item This implicit conversion is provided by compiler.
+    \item It makes code longer but easier to read.
+    \item This information tells clearly to programmer that input argument is no longer needed.
+    \item As above
+    \item As above
+\end{enumerate}
+
+\subsection{Allocating memory}
+\subsubsection{Descripton}
+\begin{enumerate}
+    \item Do not use malloc to allocate memory. Instead of it, use calloc.
+    \item Structure allocated on stack should be always reset.
+    \item Do not use alloca to dynamically allocate memory on stack. C99 supports VLA and VLA should be used instead.
+\end{enumerate}
+
+\subsubsection{Examples}
+\begin{enumerate}
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+int64_t* ptr_p = calloc(5, sizeof(*ptr_p));
+
+/* Incorrect */
+int64_t* ptr2_p = malloc(sizeof(*ptr2_p) * 5);
+\end{lstlisting} 
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct. Always initialize arrays on stack */ 
+void foo(void)
+{
+    uint32_t array[10] = {0};
+    
+    /* some code */
+}
+
+/* Incorrect */ 
+void foo(void)
+{
+    uint32_t array[10]; /* Not initialized array */
+    
+    /* some code */
+}
+
+/* Correct. Always memset VLA because VLA cannot be initialize as arrays of constant known size */
+void vla(size_t size)
+{
+    int vla_array[size];
+    (void)memset(&vla_array[0],
+                 0,
+                 sizeof(vla_array));
+    
+    /* some code */
+}
+
+/* Incorrect */
+void vla(size_t size)
+{
+    int vla_array[size]; /* Not initialized VLA */
+    
+    /* some code */
+}
+\end{lstlisting}
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+void foo(const size_t size)
+{
+    /* Do not forget to memset VLA */
+    int64_t array[size];
+    (void)memset(&vla_array[0],
+                 0,
+                 sizeof(vla_array));
+    
+    /* some code */
+}
+
+/* Incorrect. Do not use alloca to allocating memory on stack. 
+   Instead of it, use VLA, which is supported by C99 */
+void foo(const size_t size)
+{
+    int64_t* ptr_p = alloca(sizeof(*ptr_p) * size);
+    
+    /* some code */
+}
+\end{lstlisting}
+\end{enumerate}
+
+\subsubsection{Reason}
+\begin{enumerate}
+    \item Always use calloc which set memory to zero. This would avoid unnecessary mistakes in future.
+    \item Tis is often mistake. Dereference of memory allocated on stack, which has not been reseted. Always reset memory allocated on stack.
+    \item Try to avoid obsolete alloca for dynamic allocations on stack. Instead of it, use feature from C99, which is variable length array.
+\end{enumerate}

@@ -1,0 +1,169 @@
+\section{Macros}
+\subsection{Description}
+%TODO Zastanowic sie jak sensowanie poukładać te warunki aby dla innych miało to
+% sens logiczny. (Duser)
+\begin{enumerate}
+    \item Names of macros defining ICE (Integer Constant Expression) and labels in enums are always capitalized.
+    \item Capitalized macro names are appreciated for functionlike macros. Snake case names are only appreciated for functionlike macros which overlapping functions.
+    \item Generally, inline functions are preferable to macros resembling functions.
+    \item Macros with multiple statements should be enclosed in a do - while block.
+    \item Macros should not affect control flow. If do, describe it with details in code.
+    \item Whenever possible, use an enum definition instead of \#define values.
+    \item Always put parentheses around the macro parameters and whole macro. But do not add parentheses around ICE which are not expressions.
+\end{enumerate}
+
+\subsection{Examples}
+\begin{enumerate}
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+#define CONSTANT 0x12345
+
+/* Incorrect */
+#define constant 0x12345
+\end{lstlisting}
+    
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct. This is ICE */
+#define CONSTANT 0x12345
+
+/* Correct. This is functionlike macro */
+#define ASSIGN(dst_p, src_p, size_of) \
+    do { \
+        /* some code */ \
+    } while (0)
+    
+/* Incorrect. This functionlike macro not overlapping other function */
+#define assign(dst_p, src_p, size_of) \
+    do { \
+        /* some code */ \
+    } while (0)
+    
+/* Correct. This functionlike macro overlapping function pair_create. */
+#define pair_create() \
+    do { \
+        /* some code */ \
+    } while (0)
+\end{lstlisting}   
+    
+    
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct. This code need to print LINE in code, so need to be pasted into code directly */
+#define PRINT_LINE() printf("%d", __LINE__)
+
+/* Correct. This code need to works for all fundamental types */
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
+/* Correct. This is only wrapper, so should be inline */
+static inline foo_wrapper(void)
+{
+    foo_func1();
+    foo_func2();
+}
+
+/* Incorrect. This cannot be inline as functions, because this will be print LINE from function code instead of caller code line */
+static inline print_line(void)
+{
+    printf("%d", __LINE__);
+}
+
+/* Incorrect. This code need as many functions as types */
+static inline min_int(const int a, const int b)
+{
+    return a < b ? a : b;
+}
+
+static inline min_double(const double a, const double b)
+{
+    return a < b ? a : b;
+}
+
+/* the same for other types */
+
+/* Incorrect. There is no advantages to use this wrapper as a macro */
+#define FOO_WRAPPER(void) \
+do { \
+    foo_func1(); \
+    foo_func2(); \
+} while (0)
+
+\end{lstlisting}   
+
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+#define FOO(ptr_p) \
+    do { \
+        free(ptr); \
+        ptr_p = NULL; \
+    } while (0)
+    
+/* Incorrect */
+#define FOO(ptr_p) \
+    free(ptr); \
+    ptr_p = NULL; \
+\end{lstlisting}   
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct. This functionlike macro print error message and ending current process */
+#define ERROR(msg, val) \
+    do { \
+        fprintf(stderr, "%s.\t\t FILE=%s LINE=%d\n", \
+                msg, __FILENAME__,  __LINE__); \
+        return val; \
+    } while (0) 
+
+/* Incorrect. This functionlike macro affect control flow but affected control flow was not described */
+#define FOO(x) \
+    do { \
+        if (blah(x) < 0) \
+        { \
+            return -EBUGGERED; \
+        } \
+    } while (0)
+\end{lstlisting}
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+typedef enum parser_state_t
+{
+    PARSER_STATE_WORKING,
+    PARSER_STATE_STOPPED,
+} parser_state_t;
+
+/* Incorrect */
+#define PARSER_STATE_WORKING 0
+#define PARSER_STATE_WORKING 1
+\end{lstlisting}
+
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+#define power(x) ((x) * (x))
+
+/* Incorrect */
+#define power(x) (x * x)
+
+/* Incorrect */
+#define power(x) (x) * (x)
+
+/* Incorrect. This is ICE */
+#define CONSTANT (NUMBER)
+\end{lstlisting}
+\end{enumerate}
+
+\subsection{Reasons}
+\begin{enumerate}
+    \item Capitalized names tells only this is functionlike macro, define or enum. By keeping this order, code would be easier to read for static analyze.
+    \item In C99 overlapping is only possible by writing functionlike macro with the same name. This is why we allows for snake case for functionlike macros. In other ways, always prefer capitalized names for functionlike macros and ICE.
+    \item If you need generic function, always choose functionlike macros instead of writing many inline functions for specified types. If not, choose inline function which allows to check type at compile time.
+    \item Even if we have curly brackets, we will use do - while loop to protect against undesirable errors.
+    \item Usually we need wrappers for few operations e.g. write message and return. It does not make sens to copy-paste this operations. Better idea would be write functionlike macro. Inline function will not work because we return from incorrect function. 
+    \item Enum has adjusted type and proper range for assign. Differ values are errors at compile time and this is why we do not want substitute enum by \#define.
+    \item This helps to avoid many preprocessor mistakes.
+\end{enumerate}

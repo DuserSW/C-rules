@@ -1,0 +1,80 @@
+\documentclass[11]{article}
+\usepackage{listings}
+\usepackage{ucs}
+\usepackage[utf8x]{inputenc}
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{amsfonts}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[headheight=18pt, top=25mm, bottom=25mm, left=25mm, right=25mm]{geometry}
+\usepackage[colorlinks=true, linkcolor=black, filecolor=black, citecolor=black, urlcolor=blue]{hyperref}
+
+\lstloadlanguages{C}
+
+\lstdefinestyle{C99}
+{
+	language=C,
+ 	basicstyle=\ttfamily,
+	keywordstyle=\color{blue}\ttfamily,
+	stringstyle=\color{red}\ttfamily,
+	commentstyle=\color{OliveGreen}\ttfamily,
+    %frame=single,
+	numbers=none,
+	stepnumber=1,
+	numbersep=5pt,
+	numberfirstline=true,
+	breaklines=true,
+	breakautoindent=false,
+	breakatwhitespace=false,
+	%postbreak=\space,
+	tabsize=2,
+	showspaces=false,
+	showstringspaces=false,
+	extendedchars=true,
+	backgroundcolor=\color{white},
+	%postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+ 	morekeywords={size_t, ssize_t, uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, restrict, inline, typeof, sizeof, ptrdiff_t}
+ }
+
+\title{General C Rules}
+% No author mentioned, since all project members have been involved in rules creation
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\input{1_introduction.tex}
+\newpage
+
+\input{2_style.tex}
+\newpage
+
+\input{3_naming.tex}
+\newpage
+
+\input{4_types.tex}
+\newpage
+
+\input{5_variables.tex}
+\newpage
+
+\input{6_functions.tex}
+\newpage
+
+\input{7_macros.tex}
+\newpage
+
+\input{8_oop.tex}
+\newpage
+
+\input{9_performance.tex}
+\newpage
+
+\input{10_misc.tex}
+
+\end{document}
+
+% NEED TO REVIEW:

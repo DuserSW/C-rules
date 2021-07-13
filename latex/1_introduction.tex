@@ -1,0 +1,112 @@
+\section{Introduction}
+\subsection{Standard language}
+\subsubsection{Description}
+    \begin{enumerate}
+        \item Project is developing in the well known C standard - C99.
+    \end{enumerate}
+
+\subsubsection{Examples}
+    \begin{enumerate}
+        \item
+\begin{lstlisting}[language=C,style=C99]
+/* Difference between GNU99 and C99 */
+
+/* Correct macro with standard C99 but danger */
+#define MIN(a,b) (a) > (b) ? (b) : (a)
+
+/* Incorrect. We do not support GNU99 */
+#define MIN(a, b) \
+    ({ \
+        typeof(a) _a = (a); \
+        typeof(b) _b = (b); \
+        (void)(&_a == &_b); \
+        _a > _b ? _b : _a; \
+    })
+    
+/* Difference between C11 and C99 */
+
+/* Correct. Definition of strncpy from standard C99 */
+char *strncpy(char* restrict dst_p, 
+              const char* restrict src_p,
+              size_t size);
+
+/* Incorrect. Definition of strncpy from standard C11. In standard C99 we cannot ensure that array has at least one char */
+char *strncpy(char target[static 1], 
+              char const source[static 1],
+              size_t size);
+\end{lstlisting} 
+    \end{enumerate}
+
+\subsubsection{Reason}
+    \begin{enumerate}
+        \item GNU99 is a great C standard with compiler features. By using this standard object oriented code is simpler to understand, because instead of C tricks we can use attributes and new keywords. Unfortunately this standard is supported only by GCC. Because we want to use clang static analyzer we cannot use GNU99. The last well known standard supported by all C compilers is ISO C99. That's why we chose C99. 
+    \end{enumerate}
+
+
+\subsection{Files}
+\subsubsection{Description}
+    \begin{enumerate}
+        \item All header files should be named as <class\_name>.h, source files should be named in the same way with .c extension.
+        \item Header must have include guardian using \\ 
+        \#ifndef FILE\_NAME\_WITH\_CAPITAL\_LETTERS\_H.
+        \item Always header file must have \@file doxygen documentation where destiny of file should be explained.
+        \item Do not use "" to import files (\#include "file.h"). Always you should use <> operators (\#include <file.h>). Makefile should take care of proper importing and linking files.
+    \end{enumerate}
+
+\subsubsection{Examples}
+\begin{enumerate}
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* In this example we would like to implement pair - container. These names are correct */
+
+pair.h /* header file */
+pair.c /* source file */
+\end{lstlisting}
+ 
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct added file guardians */
+#ifndef PAIR_H
+#define PAIR_H
+
+/* some code */
+
+#endif /* PAIR_H */
+
+/* Incorrect */
+#pragma once
+
+/* some code */
+\end{lstlisting}
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct beginning of the file with doxygen rules */
+/** @file */ 
+\end{lstlisting}
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+#ifndef PAIR_H
+#define PAIR_H
+
+/* Correct */
+#include <array.h>
+
+/* in Makefile */
+$(INCLUDES) += -I path_to_array.h
+
+/* Incorrect */
+#include "array.h"
+
+#endif /* PAIR_H */
+\end{lstlisting}
+\end{enumerate}
+\subsubsection{Reason}
+    \begin{enumerate}
+        \item This name convention is related to OOP in C file naming convention.
+        \item \#pragma once is a compiler specific keyword. Since we want to be compatible with all C compilers, basic mechanism should be used.
+        \item File documentation with name convention tells user what is the file content and when user should use this file (include to project as well)
+        \item Using improper operators can cause linker error. Good build system should set compiler flag to header file's path before compiler will be run. That's why only <> operators should be used. If error occurs during compiling then build system should be fixed.
+    \end{enumerate}
+    

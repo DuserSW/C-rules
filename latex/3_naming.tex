@@ -1,0 +1,133 @@
+\section{Naming}
+\subsection{Descripton}
+\begin{enumerate}
+    \item Snake case should be used in every names (files, variables, functions, macros, macros like functions).
+    \item Function name should be started with class prefix.
+    \item Pointer should have suffix \_p, double pointer \_pp etc. (Array is not a pointer so should not have suffix).
+    \item Name should show programmer what function or variable do. But also name should be as short as possible.
+    \item New type of complex structure should start with capital letter, new types of fundamental types should end with \_t prefix.
+\end{enumerate}
+
+\subsection{Examples}
+\begin{enumerate}
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+
+void foo(int val1, int val2, int val3);
+#define foo(val1, val2) foo(val1, val2, 0) 
+
+static inline Rbt_node* rbt_min_node(const Rbt_node* node_p);
+
+static Rbt_node* sentinel_p = &sentinel_node;
+
+/* Incorrect */
+#define Foo(val1, val2) foo(val1, val2, 0)
+     
+static inline RbtNode* __minNodeOfRbt(const RbtNode* node_p);
+
+static RbtNode* sentinel_p = &sentinelNode;
+\end{lstlisting}
+    
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+void* pair_create(int val1, int val2);
+
+/* Incorrect because pair is class name. We cannot do functions that begin with create, get, make etc. Instead of it we add prefix which contains class name */
+void* create_pair(int val1, int val2);
+\end{lstlisting}
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+int* ptr_p;
+int array[10];
+
+/* Incorrect */
+int* ptr;
+int array_p[10];
+\end{lstlisting}
+
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+int t[10];
+for (int i = 0; i < 10; ++i)
+{
+    printf("%4d", t[i]);
+}
+    
+#define SWAP(a, b, type) \
+    do { \
+        type tmp = a; \
+        a = b; \
+        b = tmp; \
+    } while (0)
+    
+List* list = list_create();
+List_node* head = list_get_head(list);
+
+/* Incorrect */
+int t[10];
+for (int t_array_iterator = 0;
+     t_array_iterator < 10;
+     ++t_array_iterator)
+{
+    printf("%4d", t[t_array_iterator]);
+}
+    
+#define SWAP(a, b, type) \
+    do { \
+        type new_temporary_variable_on_stack = a; \
+        a = b; \
+        b =  new_temporary_variable_on_stack; \
+    } while (0)
+    
+List* l = list_create();
+List_node* h = list_get_head(l);
+\end{lstlisting}
+
+    \item
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+typedef struct Pair
+{
+    int first;
+    int second;
+} Pair;
+
+typedef uint32_t u32_t
+
+typedef enum option
+{
+    OPTION_1,
+    OPTION_2,
+} option_t
+
+/* Incorrect */
+typedef struct Pair
+{
+    int first;
+    int second;
+} pair_t;
+
+typedef uint32_t u32
+
+typedef enum option
+{
+    OPTION_1,
+    OPTION_2,
+} Option
+
+\end{lstlisting}
+\end{enumerate}
+
+\subsection{Reason}
+\begin{enumerate}
+    \item Snake case has been choosed because is easy to read and looks well.
+    \item Functions with class prefix tells clearly programmer where this function belongs.
+    \item Pointers are using another operators, so it's better to know if variable is a pointer or not.
+    \item Do not use cute and fancy names like this\_variable\_is\_temporary\_counter. A C programmer would call that variable tmp, which is much easier to write, and not the least more difficult to understand.
+    \item Custom types are really nice, but if we cannot find out which type is complex type or fundamental type we cannot optimize code also. When  we will see type starting with capital letter we will know that this is structure or union and it's better to pass it via pointer. Also suffix \_t tells us that this is only alias for another fundamental type. 
+\end{enumerate}

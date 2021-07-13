@@ -1,0 +1,242 @@
+\section{Functions}
+\subsection{Description}
+\begin{enumerate}
+    \item Always prefer programming by contracts. Try to split function for preconditions, asserts for selected operations and post conditions.
+    \item Use const keyword for arguments passed by value and pointers (immutable pointer, data and pointer and data). Remember, add const keyword only in definition, not in declaration. We want be in accordance with MISC.
+    \item Never pass/return huge structures to/from a function by value. Always avoid unnecessary copying of data. Pointer to the structure has to be passed/returned to/from function.
+    \item Always prefer to write functions not larger than 100 lines (comments included) and input arguments not exceed 6. 
+    \item Function definition must have a declaration. Exported, static, inline and static inline functions.
+    \item Put function body logic in following order: input, modify, output.
+    \item Put function parameters in following order: input, output.
+\end{enumerate}
+
+\subsection{Examples}
+\begin{enumerate}
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Programming by contract helps to avoid a lot of errors */
+int foo(int input)
+{
+    int output = 0;
+    
+    /* Precondition. Check input. */
+    /* some code */
+    
+    /* Assertions for proper operations */
+    /* some code */
+    
+    /* Postcondition. Check returned output */
+    /* some code */
+    
+    return output;
+}
+\end{lstlisting}
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct declaration */
+void foo(size_t val);
+
+/* Incorrect declaration */
+void foo(const size_t val);
+
+/* Correct definiton. Immutable value at input */
+void foo(const size_t val)
+{
+    /* some code */
+}
+
+
+/* Correct declaration */
+void foo(void* ptr_p)
+
+/* Incorrect declaration */
+void foo(const void* ptr_p)
+
+/* Correct definiton. Mutable pointer to immutable data */
+void foo(const void* ptr_p)
+{
+    /* some code */
+}
+
+
+/* Correct declaration */
+void foo(void* ptr_p)
+
+/* Incorrect declaration */
+void foo(void* const ptr_p)
+
+/* Correct definiton. Immutable pointer to mutable data */
+void foo(void* const ptr_p)
+{
+    /* some code */
+}
+
+
+/* Correct declaration */
+void foo(void* ptr_p)
+
+/* Incorrect declaration */
+void foo(const void* const ptr_p)
+
+/* Correct definiton. Immutable pointer to immutable data */
+void foo(const void* const ptr_p)
+{
+    /* some code */
+}
+\end{lstlisting}
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct. Return huge structure by pointer */
+void* foo(void)
+{
+    Huge_structure* ptr_p = calloc(1, sizeof(*ptr_p);
+    process(ptr_p, data);
+    
+    return ptr_p;
+}
+
+/* Incorrect because returned huge structure by value */
+Huge_structure foo(void)
+{
+    Huge_structure result = {0};
+    process(&result);
+    
+    return result;
+}
+
+
+/* Correct. Pass huge structure to function by pointer */
+void* foo(Huge_structure* ptr_p)
+{
+    /* some code */
+}
+
+/* Incorrect */
+void* foo(Huge_structure huge_structure)
+{
+    /* some code */
+}
+\end{lstlisting}
+
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct, code has been splitted into a few functions, and main function only calls another function */
+void foo(void)
+{
+    Huge_structure* ptr_p = huge_structure_create();
+    huge_structure_func1(ptr_p);
+    huge_structure_func2(ptr_p);
+    huge_structure_func3(ptr_p);
+    huge_structure_destroy(ptr_p);
+}
+
+/* Neither correct nor incorrect. It is not always possible to write function to 100 lines and 6 arguments. But if possible, design function as good as can */
+void foo(void)
+{
+    Huge_structure* ptr_p;
+    /* code connected with allocation */
+    /* code connected with func1 */
+    /* code connected with func2 */
+    /* code connected with func3 */
+    /* code connected with deallocation */
+}
+\end{lstlisting}
+    
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+static inline void foo1(void);
+inline void foo2(void);
+void foo3(void);
+
+static inline void foo1(void)
+{
+    /* some code */
+}
+
+inline void foo2(void)
+{
+    /* some code */
+}
+
+void foo3(void)
+{
+    /* some code */
+}
+
+/* Incorrect. There are no declarations. */
+static inline void foo1(void)
+{
+    /* some code */
+}
+
+inline void foo2(void)
+{
+    /* some code */
+}
+
+void foo3(void)
+{
+    /* some code */
+}
+\end{lstlisting} 
+    
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+void foo(void)
+{
+    /* create necessary variables */
+    /* some code */
+    
+    /* process, modify */
+    /* some code */
+    
+    /* output */
+    /* some code */
+}
+
+/* Incorrect */
+void foo(void)
+{
+    /* create necessary variables */
+    /* some code */
+    
+    /* process, modify */
+    /* some code */
+    
+    /* get output */
+    /* some code */
+    
+    /* process output again */
+    /* some code */
+    
+    /* output */
+    /* some code */
+}
+\end{lstlisting} 
+
+    \item 
+\begin{lstlisting}[language=C,style=C99]
+/* Correct */
+void foo(void* input1_p, void* input2_p, void* output_p);
+
+/* Incorrect */
+void foo(void* output_p, void* input1_p, void* input2_p);
+void foo(void* input1_p, void* output_p, void* input2_p);
+\end{lstlisting}
+\end{enumerate}
+
+\subsection{Reasons}
+\begin{enumerate}
+    \item If-statement should be added to exported functions, asserts to static functions and function with critical performance, when every cycle counts.
+    \item Const keyword should only tell programmer what is read-only in function, which helps to analyze and understand function.
+    \item Huge structures, passed/returned to/from functions will be copying by stack. Better idea would be coping address of pointer. Copying by stack may lead to stack overflow.
+    \item Large code = small readability. Function with many responsibilities spoils rule SOLID from OOP (section 8).
+    \item With declared function we will avoid linker errors. We do not need to worry about functions order.
+    \item This order make functions easier to read, understand and maintain.
+    \item This order make functions easier to analyze. 
+\end{enumerate}
